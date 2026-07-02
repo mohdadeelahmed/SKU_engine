@@ -2,6 +2,8 @@
 #include <string>
 #include <sstream> //stringstream library
 #include <unordered_map> //mapping sku dictionary
+#include <algorithm> //std::transform
+#include <cctype> //::toLower
 
 
 std::unordered_map<std::string, std::string> categories = {
@@ -28,6 +30,9 @@ int main() {
 
     while (textStream >> word) { //loops through textStream word by word
         
+        //transforming every char from upper to lower case
+        std::transform(word.begin(), word.end(), word.begin(), ::tolower);
+
         //look for category and color words in textStream
         if (categories.count(word)) { //.count() function to check if category exists once, if not skip to color
             skuCategory = categories[word];
