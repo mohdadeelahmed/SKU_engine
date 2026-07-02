@@ -5,6 +5,32 @@
 #include <algorithm> //std::transform
 #include <cctype> //::toLower
 #include <fstream> //file stream to read data from file on computer
+#include <vector> //to manage dynamic lists with varying sizes (variants of products)
+
+// Structural mapping for variant combinations
+struct ProductVariant {
+    std::string size;
+    std::string color;
+    std::string sku;
+    std::string imagesrc;
+    std::string variantImage;
+    int inventoryQty;
+};
+
+struct ShopifyProduct {
+    std::string handle;
+    std::string title;
+    std::string bodyHtml;
+    std::string vendor;
+    std::string category;
+    std::string price;
+    std::string fabric;
+    std::string careInstructions;
+
+    // List holding all variations of a product
+    std::vector <ProductVariant> variants;
+};
+
 
 std::unordered_map<std::string, std::string> categories = {
     {"jacket", "JKT"}, {"t-shirt", "TSH"}, {"dress", "DRS"}, {"pants", "PNT"}
