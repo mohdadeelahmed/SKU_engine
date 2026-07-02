@@ -4,7 +4,7 @@
 #include <unordered_map> //mapping sku dictionary
 #include <algorithm> //std::transform
 #include <cctype> //::toLower
-
+#include <fstream> //file stream to read data from file on computer
 
 std::unordered_map<std::string, std::string> categories = {
     {"jacket", "JKT"}, {"t-shirt", "TSH"}, {"dress", "DRS"}, {"pants", "PNT"}
@@ -14,26 +14,55 @@ std::unordered_map<std::string, std::string> colors = {
     {"blue", "BLU"}, {"black", "BLK"}, {"red", "RED"}, {"white", "WHT"}
 };
 
+// Getter for serial number (skuBase)
+int getNextSerialNumber(std::string skuBase) {
+
+    // Reading csv file (choose name)
+    std::ifstream file("inventory.csv");
+
+    // If file DNE, then return 1st number (1st product)
+    if (!file.is_open()) { 
+    return 1;
+    }
+
+    std::string line;
+    int count = 0;
+
+    // Read file line by line
+    while (std::getline(file, line)) {
+
+        // Check if the sku exists in the current line (npos = no position)
+        if (line.find(skuBase) != std::string::npos) {
+            count++;
+        }
+    }
+
+    file.close();
+    return count + 1;
+}
 
 int main() {
 
-    std::cout << "Enter clothing description: "; //output
+    std::cout << "Enter clothing description: ";
 
-    std::string description; //initialize description
-    std::getline(std::cin, description); //gets input (std::cin)
+    std::string description;
+    std::getline(std::cin, description);
 
-    std::stringstream textStream(description); //object textStream reads description byte by byte
-    std::string word; //initialize word string
+    // Object textStream reads description byte by byte
+    std::stringstream textStream(description);
+    std::string word;
 
-    std::string skuCategory = "GEN"; //GEN = general
-    std::string skuColor = "XXX";    //XXX = color (unknown)
+    // Set placeholder initializations
+    std::string skuCategory = "GEN";
+    std::string skuColor = "XXX";
 
-    while (textStream >> word) { //loops through textStream word by word
+    // Loops through textStream word by word
+    while (textStream >> word) {
         
-        //transforming every char from upper to lower case
+        // Transforming every char from upper to lower case
         std::transform(word.begin(), word.end(), word.begin(), ::tolower);
 
-        //look for category and color words in textStream
+        // Looks for category and color words in textStream
         if (categories.count(word)) { //.count() function to check if category exists once, if not skip to color
             skuCategory = categories[word];
         }
@@ -42,8 +71,25 @@ int main() {
         }
     }
 
-    std::string finalSKU = skuCategory + "-" + skuColor;
-    std::cout << "Generated SKU: " << finalSKU << std::endl;
+    // GENERATE SKU
+    std::string skuBase = skuCategory + "-" + skuColor;
+    int serialNumber = getNextSerialNumber(skuBase);
+    std::string finalSKU = skuBase + "-" + std::to_string(serialNumber);
+    
+    std::cout << "\nGenerated SKU: " << finalSKU << std::endl;
+
+    // APPEND MODE (ios::app): Append the SKU onto csv file
+    std::ofstream outFile("inventory.csv", std::ios::app);
+
+    if (outFile.is_open()) {
+        // Write: SKU, Description, and end with a blank line
+        outFile << finalSKU << "," << description << "\n";
+        outFile.close();
+
+        std::cout << "Successfully saved to inventory.csv!" << std::endl;
+    } else {
+        std::cout << "Error: Could not open inventory.csv for writing." << std::endl;
+    }
 
     return 0;
 }
