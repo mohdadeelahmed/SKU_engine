@@ -6,6 +6,7 @@
 #include <cctype> //::toLower
 #include <fstream> //file stream to read data from file on computer
 #include <vector> //to manage dynamic lists with varying sizes (variants of products)
+#include <iomanip> // for zero-padding (ex. 0028)
 
 // Structural mapping for variant combinations
 struct ProductVariant {
@@ -28,91 +29,77 @@ struct ShopifyProduct {
     std::vector <ProductVariant> variants;
 };
 
-
+// Category profiles
 std::unordered_map<std::string, std::string> categories = {
     {"jacket", "JKT"}, {"t-shirt", "TSH"}, {"dress", "DRS"}, {"pants", "PNT"}
 };
 
-std::unordered_map<std::string, std::string> colors = {
-    {"blue", "BLU"}, {"black", "BLK"}, {"red", "RED"}, {"white", "WHT"}
+// Color profiles
+std::unordered_map<std::string, std::string> colorCodes = {
+    {"charcoal black", "BLK"}, {"stone grey", "GRY"}, {"sahara gold", "GLD"},
+    {"velvet cocoa", "CCA"}, {"muted matcha", "MCH"}, {"sky blue", "BLU"},
+    {"green", "GRN"}
 };
 
-// Getter for serial number (skuBase)
-int getNextSerialNumber(std::string skuBase) {
+// Sizing profiles
+std::vector<std::string> standardSizes = {"52", "54", "56", "58", "60"};
 
-    // Reading csv file (choose name)
-    std::ifstream file("inventory.csv");
+std::string getNextDesignID() {
+    std::ifstream file("shopify_import.csv");
+    int highestID = 0;
 
-    // If file DNE, then return 1st number (1st product)
     if (!file.is_open()) { 
-    return 1;
+    return "0001"; // Base ID
     }
 
     std::string line;
-    int count = 0;
 
-    // Read file line by line
     while (std::getline(file, line)) {
 
-        // Check if the sku exists in the current line (npos = no position)
-        if (line.find(skuBase) != std::string::npos) {
-            count++;
+        size_t firstDash = line.find('-');
+        if (firstDash != std::string::npos && firstDash + 5 <= line.length()) {
+            std::string idStr = line.substr(firstDash + 1, 4);
+
+            if (std::all_of(idStr.begin(), idStr.end(), ::isdigit)) {
+                int currentID = std::stoi(idStr);
+                if (currentID > highestID) {
+                    highestID = currentID;
+                }
         }
     }
-
+}
     file.close();
-    return count + 1;
+
+    // Increment counter and zero-pad to four chars
+    int nextID = highestID + 1;
+    std::stringstream ss;
+    ss << std::setw(4) << std::setfill('0') << nextID;
+    return ss.str();
+
 }
 
 int main() {
 
-    std::cout << "Enter clothing description: ";
+    ShopifyProduct product;
 
-    std::string description;
-    std::getline(std::cin, description);
+    // Collect SKU fields
+    std::cout << "=== SHOPIFY & AMAZON LISTING GENERATOR ===" << std::endl;
+    std::cout << "Enter Product Title: ";
+    std::getline(std::cin, product.title);
 
-    // Object textStream reads description byte by byte
-    std::stringstream textStream(description);
-    std::string word;
+    std::cout << "Enter Category Abbreviation (e.g., MK, ABY): ";
+    std::getline(std::cin, product.category);
+    std::transform(product.category.begin(), product.category.end(), product.category.begin(), ::toupper);
 
-    // Set placeholder initializations
-    std::string skuCategory = "GEN";
-    std::string skuColor = "XXX";
+    std::cout << "Enter Price: ";
+    std::getline(std::cin, product.price);
 
-    // Loops through textStream word by word
-    while (textStream >> word) {
-        
-        // Transforming every char from upper to lower case
-        std::transform(word.begin(), word.end(), word.begin(), ::tolower);
+    std::cout << "Enter Fabric Type: ";
+    std::getline(std::cin, product.fabric);
 
-        // Looks for category and color words in textStream
-        if (categories.count(word)) { //.count() function to check if category exists once, if not skip to color
-            skuCategory = categories[word];
-        }
-        else if (colors.count(word)) {
-            skuColor = colors[word];
-        }
-    }
-
-    // GENERATE SKU
-    std::string skuBase = skuCategory + "-" + skuColor;
-    int serialNumber = getNextSerialNumber(skuBase);
-    std::string finalSKU = skuBase + "-" + std::to_string(serialNumber);
+    std::string colorsInput;
+    std::cout << "Enter Colors (comma-separated, e.g., Charcoal Black, Stone Grey): ";
+    std::getline(std::cin, colorsInput);
     
-    std::cout << "\nGenerated SKU: " << finalSKU << std::endl;
-
-    // APPEND MODE (ios::app): Append the SKU onto csv file
-    std::ofstream outFile("inventory.csv", std::ios::app);
-
-    if (outFile.is_open()) {
-        // Write: SKU, Description, and end with a blank line
-        outFile << finalSKU << "," << description << "\n";
-        outFile.close();
-
-        std::cout << "Successfully saved to inventory.csv!" << std::endl;
-    } else {
-        std::cout << "Error: Could not open inventory.csv for writing." << std::endl;
-    }
-
     return 0;
 }
