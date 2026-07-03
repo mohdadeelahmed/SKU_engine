@@ -10,8 +10,9 @@
 // Structural mapping for variant combinations
 struct ProductVariant {
     std::string size;
-    std::string color;
-    std::string sku;
+    std::string colorName;
+    std::string colorCode; // ex. BLK
+    std::string sku; // ex. ABY-0028-BLK-52
     std::string imagesrc;
     std::string variantImage;
     int inventoryQty;
@@ -20,14 +21,10 @@ struct ProductVariant {
 struct ShopifyProduct {
     std::string handle;
     std::string title;
-    std::string bodyHtml;
-    std::string vendor;
     std::string category;
+    std::string designId;
     std::string price;
     std::string fabric;
-    std::string careInstructions;
-
-    // List holding all variations of a product
     std::vector <ProductVariant> variants;
 };
 
