@@ -14,7 +14,7 @@ struct ProductVariant {
     std::string colorName;
     std::string colorCode; // ex. BLK
     std::string sku; // ex. ABY-0028-BLK-52
-    std::string imagesrc;
+    std::string imageSrc;
     std::string variantImage;
     int inventoryQty;
 };
@@ -123,6 +123,34 @@ int main() {
             individualColors.push_back(rawColor);
         }
     }
+
+    //
+    for (const std::string& size : standardSizes) {
+        for (const std::string& color : individualColors) {
+            ProductVariant variant;
+            variant.size = size;
+            variant.colorName = color;
+            
+            // Convert color to 3-letter abbreviation
+            std::string lowerColor = color;
+            std::transform(lowerColor.begin(), lowerColor.end(), lowerColor.begin(), ::tolower);
+            
+            if (colorCodes.count(lowerColor)) {
+                variant.colorCode = colorCodes[lowerColor];
+            } else {
+                variant.colorCode = "XXX";
+            }
+            
+            // Final Variant SKU
+            variant.sku = product.category + "-" + product.designId + "-" + variant.colorCode + "-" + variant.size;
+            
+            // Shopify Image Link
+            variant.imageSrc = "https://cdn.shopify.com/files/" + product.handle + "_" + variant.colorCode + ".jpg";
+            
+            product.variants.push_back(variant);
+        }
+    }
+
 
     return 0;
 }
