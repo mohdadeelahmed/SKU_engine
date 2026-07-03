@@ -100,6 +100,29 @@ int main() {
     std::string colorsInput;
     std::cout << "Enter Colors (comma-separated, e.g., Charcoal Black, Stone Grey): ";
     std::getline(std::cin, colorsInput);
-    
+
+    // URL Handle Generation
+    product.handle = product.title;
+    std::transform(product.handle.begin(), product.handle.end(), product.handle.begin(), ::tolower);
+    std::replace(product.handle.begin(), product.handle.end(), ' ', '-');
+
+    // Design ID
+    product.designId = getNextDesignID();
+
+    // Parsing user input colors
+    std::vector<std::string> individualColors;
+    std::stringstream colorStream(colorsInput);
+    std::string rawColor;
+
+    while (std::getline(colorStream, rawColor, ',')) {
+        // Trim whitespaces
+        if (!rawColor.empty() && rawColor[0] == ' ') {
+            rawColor = rawColor.substr(1);
+        }
+        if (!rawColor.empty()) {
+            individualColors.push_back(rawColor);
+        }
+    }
+
     return 0;
 }
