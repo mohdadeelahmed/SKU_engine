@@ -160,10 +160,51 @@ int main() {
         return 1;
     }
 
-    // Shopify headings for creating new file
     if (!fileExists) {
         outFile << "Handle,Title,Body (HTML),Vendor,Option1 Name,Option1 Value,Option2 Name,Option2 Value,Variant SKU,Variant Inventory Qty,Variant Price,Status\n";
     }
+
+    // Field Rows Printing to CSV
+    for (size_t i = 0; i < product.variants.size(); ++i) {
+        const ProductVariant& v = product.variants[i];
+        
+        if (i == 0) {
+            // ROW 1: Parent Entry (Contains description and metadata)
+            std::string generatedHTML = "<p>This beautiful " + product.title + " is crafted from premium " + product.fabric + ".</p>";
+            
+            outFile << product.handle << ","
+                    << product.title << ","
+                    << "\"" << generatedHTML << "\"," // Quotes preserve internal HTML punctuation
+                    << "Boutique One Kaftan," // Vendor
+                    << "Size," << v.size << ","
+                    << "Color," << v.colorName << ","
+                    << v.sku << ","
+                    << "100," // Default initial inventory count
+                    << product.price << ","
+                    << "active\n";
+        } else {
+            // ROWS+: The Child Variants (Parent headers are left blank to group options)
+            outFile << product.handle << ","
+                    << "," // Title blank
+                    << "," // Body HTML blank
+                    << "," // Vendor blank
+                    << "Size," << v.size << ","
+                    << "Color," << v.colorName << ","
+                    << v.sku << ","
+                    << "100,"
+                    << product.price << ","
+                    << "active\n";
+        }
+    }
+    
+    outFile.close();
+    
+    std::cout << "\n____________________________________________" << std::endl;
+    std::cout << "SUCCESS: Generated and compiled " << product.variants.size() << " database rows!" << std::endl;
+    std::cout << "Current Design ID SKU: " << product.designId << std::endl;
+    std::cout << "Saved into file -> shopify_import.csv" << std::endl;
+    std::cout << "______________________________________________" << std::endl;
+
 
     return 0;
 }
