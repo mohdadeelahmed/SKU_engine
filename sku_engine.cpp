@@ -151,6 +151,19 @@ int main() {
         }
     }
 
+    // Export Shopify CSV
+    bool fileExists = std::ifstream("shopify_import.csv").good();
+    std::ofstream outFile("shopify_import.csv", std::ios::app);
+
+    if (!outFile.is_open()) {
+        std::cout << "Error: Master database file locked or inaccessible." << std::endl;
+        return 1;
+    }
+
+    // Shopify headings for creating new file
+    if (!fileExists) {
+        outFile << "Handle,Title,Body (HTML),Vendor,Option1 Name,Option1 Value,Option2 Name,Option2 Value,Variant SKU,Variant Inventory Qty,Variant Price,Status\n";
+    }
 
     return 0;
 }
